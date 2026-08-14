@@ -1,0 +1,19 @@
+# Ignore the virtual environment
+.venv/
+
+# Ignore datasets (GitHub will block you if files are too big)
+data/raw/
+data/processed/
+data/interim/
+data/results/
+
+# Ignore Python cache files
+__pycache__/
+.ipynb_checkpoints/
+
+#Ignore database
+database
+
+outputs
+
+src
