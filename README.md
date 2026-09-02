@@ -151,4 +151,4 @@ Possible extensions include:
 
 ## Dissertation
 
-The full dissertation and viva presentation are available in the 
+The full dissertation and viva presentation are available in ...
