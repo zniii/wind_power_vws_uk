@@ -2,10 +2,7 @@
 .venv/
 
 # Ignore datasets (GitHub will block you if files are too big)
-data/raw/
-data/processed/
-data/interim/
-data/results/
+data
 
 # Ignore Python cache files
 __pycache__/
