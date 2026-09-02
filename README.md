@@ -1,133 +1,77 @@
-# Development and Validation of a Capacity-Weighted Geospatial Virtual Wind Station (GVWS) for Wind Power Modelling and Day-Ahead Forecasting in the UK
+# Capacity-Weighted Geospatial Virtual Wind Station (GVWS)
 
-## Overview
-
-This project investigates how meteorological data should be represented when modelling and forecasting aggregate UK wind generation.
-
-Traditional national weather representations often use simple averages across large geographical areas. However, wind generation capacity is not distributed equally across the UK. This project introduces a **Capacity-Weighted Geospatial Virtual Wind Station (GVWS)** that weights weather conditions according to the installed wind capacity associated with each ERA5 grid cell.
-
-The research evaluates whether capacity weighting improves the relationship between meteorological conditions and aggregate UK wind generation and investigates the impact of weather information availability on rolling 24-hour-ahead forecasting.
+A research project exploring whether weather data can be represented more effectively for aggregate UK wind-generation modelling and day-ahead forecasting.
 
 ---
 
-## Research Questions
+## Why I Did This Project
 
-1. Does restricting weather aggregation to wind-farm grid cells improve representation relative to a national weather mean?
-2. Does weighting wind-farm grid cells by installed capacity further improve representation?
-3. How effectively can GVWS-derived information support rolling 24-hour-ahead forecasting?
-4. How much additional predictive information is available when weather at the target horizon is perfectly known?
+Wind generation plays an increasingly important role in the UK electricity system, but forecasting national wind output remains challenging because weather conditions vary significantly across the country.
 
----
+Most forecasting studies focus on improving machine-learning models. I wanted to investigate a different question:
 
-## Data Sources
+> Are we representing the weather itself in the best possible way before we even start forecasting?
 
-### NESO Aggregate Wind Generation
-- Aggregate UK wind generation
-- Target variable used for modelling and forecasting
-
-### ERA5 Reanalysis
-- Wind speed
-- Wind direction
-- Air density
-- Relative humidity
-- Boundary-layer height
-- Cloud cover
-- Precipitation
-- Solar radiation
-- Gust speed
-
-### Renewable Energy Planning Database (REPD)
-- Wind-farm locations
-- Installed capacity
-- Technology type
-- Operational status
+To answer this, I developed a **Capacity-Weighted Geospatial Virtual Wind Station (GVWS)**, a synthetic weather series that gives greater influence to locations containing more installed wind capacity.
 
 ---
 
-## Methodology
+## Project Overview
 
-### Step 1: Data Processing
+The project combines:
 
-```text
-NESO
-+
-ERA5
-+
-REPD
-        ↓
-Cleaning & Alignment
-```
+- NESO aggregate wind-generation data
+- ERA5 meteorological reanalysis data
+- Renewable Energy Planning Database (REPD) wind-farm metadata
 
-### Step 2: Geospatial Processing
+The workflow consists of:
 
-```text
-Wind Farms
-        ↓
-Nearest ERA5 Cell Mapping
-        ↓
-Capacity Aggregation
-        ↓
-Capacity Weights
-```
-
-### Step 3: Meteorological Representations
-
-```text
-UK Mean
-Wind-Farm Mean
-GVWS
-```
-
-### Step 4: Representation Validation
-
-```text
-Weather(t)
-        ↓
-Predict
-        ↓
-WIND(t)
-```
-
-### Step 5: Rolling Day-Ahead Forecasting
-
-```text
-Weather(t)
-+
-Historical Information
-        ↓
-Predict
-        ↓
-WIND(t+24)
-```
-
-### Step 6: Weather-Timing Benchmark
-
-```text
-Current Weather:
-Weather(t)
-→ WIND(t+24)
-
-Perfect Future Weather:
-Weather(t+24)
-→ WIND(t+24)
-```
+1. Processing generation and weather data
+2. Mapping wind farms to ERA5 grid cells
+3. Creating three weather representations
+4. Validating each representation
+5. Applying the best representation to 24-hour-ahead forecasting
+6. Investigating the impact of target-horizon weather information
 
 ---
 
-## Models
+## Weather Representations
 
-### Baselines
+Three meteorological representations were compared:
+
+### UK Mean
+
+A simple national weather average using all ERA5 grid cells.
+
+### Wind-Farm Mean
+
+An average using only ERA5 cells associated with operational wind farms.
+
+### Capacity-Weighted GVWS
+
+A weighted average where the contribution of each ERA5 cell is based on the installed wind capacity located within that cell.
+
+This was the proposed representation developed in the project.
+
+---
+
+## Forecasting Models
+
+The following forecasting approaches were evaluated:
+
+### Benchmarks
+
 - Persistence
 - Physical Power Curve
 - ARIMA
 
-### Tree-Based Models
-- XGBoost
-- Tuned XGBoost
-- LightGBM
-- Tuned LightGBM
+### Machine Learning
 
-### Deep Learning Models
+- XGBoost
+- LightGBM
+
+### Deep Learning
+
 - LSTM
 - BiLSTM
 
@@ -137,59 +81,44 @@ Weather(t+24)
 
 ### Representation Validation
 
-| Representation | MAE (MW) | RMSE (MW) | R² |
-|---------------|-----------|-----------|------|
-| UK Mean | 1205.14 | 1546.39 | 0.8721 |
-| Wind-Farm Mean | 1024.51 | 1315.59 | 0.9075 |
-| Capacity-Weighted GVWS | **889.92** | **1134.81** | **0.9311** |
+| Representation | R² |
+|---------------|------|
+| UK Mean | 0.872 |
+| Wind-Farm Mean | 0.907 |
+| Capacity-Weighted GVWS | **0.931** |
 
-### Best Day-Ahead Forecasting Results
-
-| Model | Test R² | MAE (MW) | RMSE (MW) |
-|---------|---------|---------|---------|
-| BiLSTM | **0.3084** | **2847.89** | **3498.49** |
-| Tuned XGBoost | 0.2644 | 2863.89 | 3549.10 |
-| Tuned LightGBM | 0.2600 | 2859.49 | 3550.33 |
-
-### Weather-Timing Benchmark
-
-| Scenario | R² |
-|------------|------|
-| Current Weather | 0.0747 |
-| Perfect Future Weather | 0.6682 |
-
-### Main Finding
-
-The largest improvement came not from changing forecasting algorithms but from providing atmospheric information at the forecast target time.
+The GVWS produced the strongest representation of the weather–generation relationship.
 
 ---
 
-## Repository Structure
+### Best Day-Ahead Forecasting Result
 
-```text
-project/
-│
-├── notebooks/
-│   ├── 01_data_processing.ipynb
-│   ├── 02_era5_processing.ipynb
-│   ├── 03_gvws_construction.ipynb
-│   ├── 04_feature_engineering.ipynb
-│   ├── 05_tree_models.ipynb
-│   ├── 06_lstm_bilstm.ipynb
-│   └── 07_weather_benchmark.ipynb
-│
-├── figures/
-│
-├── outputs/
-│
-├── docs/
-│   ├── dissertation.pdf
-│   └── presentation.pdf
-│
-├── requirements.txt
-│
-└── README.md
-```
+| Model | Test R² |
+|---------|---------|
+| BiLSTM | **0.308** |
+
+BiLSTM achieved the strongest rolling 24-hour-ahead forecasting performance among the evaluated models.
+
+---
+
+### Weather Timing Benchmark
+
+| Scenario | R² |
+|----------|------|
+| Current Weather | 0.075 |
+| Perfect Future Weather | 0.668 |
+
+The largest performance improvement came from providing weather information aligned with the forecast target time rather than changing the forecasting model itself.
+
+---
+
+## Main Takeaway
+
+The most important finding of the project was:
+
+> Improving meteorological representation helped, but access to target-horizon weather information had a much larger impact on forecasting performance than changing model architecture.
+
+This suggests that future work should focus on integrating archived Numerical Weather Prediction (NWP) forecasts rather than only developing more complex machine-learning models.
 
 ---
 
@@ -200,49 +129,26 @@ project/
 - NumPy
 - GeoPandas
 - Xarray
-- Matplotlib
 - Scikit-learn
 - XGBoost
 - LightGBM
 - TensorFlow / Keras
-- Statsmodels
-
----
-
-## Limitations
-
-- ERA5 is a reanalysis dataset rather than operational NWP.
-- Capacity weights remain static through the study period.
-- One national GVWS may hide regional meteorological differences.
-- Curtailment and turbine availability were not explicitly modelled.
-- The perfect-future-weather benchmark is an upper-bound experiment rather than an operational forecast.
+- Matplotlib
 
 ---
 
 ## Future Work
 
+Possible extensions include:
+
 - Archived operational NWP forecasts
 - Dynamic capacity weighting
-- Regional GVWS models
+- Regional GVWS representations
 - Probabilistic forecasting
 - Curtailment-aware forecasting
-- Operational deployment assessment
 
 ---
 
 ## Dissertation
 
-The complete MSc dissertation is available in:
-
-```text
-docs/dissertation.pdf
-```
-
----
-
-## Author
-
-**Golshan K. Yakkha**
-
-MSc Data Science  
-University of East London
+The full dissertation and viva presentation are available in the 
